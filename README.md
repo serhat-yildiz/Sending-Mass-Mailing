@@ -1,3 +1,69 @@
+# Email Sending and Viewing Application
+
+This application is a desktop application that can send mass emails and view emails through Gmail and Outlook accounts.
+
+## Features
+
+- Connect to Gmail and Outlook accounts
+- Send mass emails
+- View emails
+- CV attachment support
+- User-friendly interface
+- Progress tracking
+
+## Installation
+
+1. Install required Python packages:
+```bash
+pip install -r requirements.txt
+```
+
+2. Create a `.env` file and add your email information:
+```
+EMAIL=your_email@gmail.com
+PASSWORD=your_app_password
+```
+
+3. Run the application:
+```bash
+python mail_app.py
+```
+
+## Creating App Password for Gmail
+
+1. Go to https://myaccount.google.com/security
+2. Enable "2-Step Verification"
+3. Go to "App Passwords"
+4. Select "App" > "Other" > "Mail Application"
+5. Copy the generated 16-digit password
+
+## Creating App Password for Outlook
+
+1. Go to https://account.microsoft.com/security
+2. Go to "Security" > "Advanced security options"
+3. Create a new app password from the "App passwords" section
+4. Copy the generated password
+
+## Usage
+
+1. Enter your email settings
+2. Add recipient list
+3. Write email subject and content
+4. Optionally add CV
+5. Click "Send Emails" button
+
+## Daily Sending Limits
+
+- Gmail: 500 emails per day
+- New Gmail accounts: 100 emails per day
+- Mass sending: 100 emails per hour
+
+## License
+
+MIT License
+
+---
+
 # E-posta Gönderme ve Görüntüleme Uygulaması
 
 Bu uygulama, Gmail ve Outlook hesapları üzerinden toplu e-posta gönderme ve e-posta görüntüleme işlemlerini yapabilen bir masaüstü uygulamasıdır.
