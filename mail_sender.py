@@ -25,7 +25,7 @@ class EmailSendingThread(QThread):
     finished_signal = pyqtSignal(int, int, str)
     error_signal = pyqtSignal(str)
     
-    def __init__(self, email, password, recipients, subject, content, cv_path=None):
+    def __init__(self, email, password, recipients, subject, content, cv_path=None, is_html=False):
         super().__init__()
         self.email = email
         self.password = password
@@ -33,6 +33,7 @@ class EmailSendingThread(QThread):
         self.subject = subject
         self.content = content
         self.cv_path = cv_path
+        self.is_html = is_html
         self.is_cancelled = False
     
     def cancel(self):
@@ -71,8 +72,9 @@ class EmailSendingThread(QThread):
                     msg['To'] = recipient
                     msg['Subject'] = self.subject
                     
-                    # Metin içeriğini HTML formatına çevir
-                    html_content = self.text_to_html(self.content)
+                    # HTML içeriği aynen kullan
+                    html_content = self.content
+                    
                     text_part = MIMEText(html_content, 'html', 'utf-8')
                     msg.attach(text_part)
                     
@@ -156,13 +158,48 @@ class EmailSendingThread(QThread):
 </html>"""
         
         return html_content
+    
+    def process_html_content(self, content):
+        """HTML içeriğini işler"""
+        # Eğer tam HTML yapısı yoksa, temel yapıyı ekle
+        if '<html>' not in content.lower() and '<body>' not in content.lower():
+            processed_html = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {{
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+            margin: 20px;
+            background-color: #ffffff;
+        }}
+        .container {{
+            max-width: 600px;
+            margin: 0 auto;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        {content}
+    </div>
+</body>
+</html>"""
+        else:
+            processed_html = content
+        
+        return processed_html
 
 class ModernMailSender(QWidget):
     def __init__(self):
         super().__init__()
         self.cv_path = None
         self.email_thread = None
-        self.content_history = []  # Metin geçmişi için
+        self.content_mode = 'html'  # Sadece HTML modu
         self.init_ui()
         self.load_settings()
         
@@ -174,13 +211,18 @@ class ModernMailSender(QWidget):
         main_layout.setContentsMargins(30, 30, 30, 30)
         
         # Başlık
-        title_label = QLabel("Toplu E-posta Gönderici")
+        title_label = QLabel("🌐 HTML E-posta Şablonu Gönderici")
         title_label.setStyleSheet("""
             QLabel {
                 font-size: 24px;
                 font-weight: bold;
-                color: #2c3e50;
+                color: #27ae60;
                 margin-bottom: 10px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 15px;
+                border-radius: 10px;
+                text-align: center;
             }
         """)
         title_label.setAlignment(Qt.AlignCenter)
@@ -260,63 +302,60 @@ class ModernMailSender(QWidget):
         subject_layout.addWidget(self.subject_input)
         content_mail_layout.addLayout(subject_layout)
         
-        # İçerik
-        content_label = QLabel("İçerik:")
-        content_label.setStyleSheet("color: #2c3e50; background-color: transparent;")
-        content_mail_layout.addWidget(content_label)
+        # Bilgilendirme
+        info_label = QLabel("🌐 HTML E-posta Şablonu Gönderici")
+        info_label.setStyleSheet("""
+            QLabel {
+                color: #27ae60;
+                font-size: 16px;
+                font-weight: bold;
+                background-color: #e8f5e8;
+                padding: 10px;
+                border-radius: 5px;
+                border-left: 4px solid #27ae60;
+            }
+        """)
+        content_mail_layout.addWidget(info_label)
+        
+        # HTML Şablon alanı
+        content_input_label = QLabel("HTML E-posta Şablonunuz:")
+        content_input_label.setStyleSheet("color: #2c3e50; background-color: transparent; font-weight: bold;")
+        content_mail_layout.addWidget(content_input_label)
+        
         self.content_input = QTextEdit()
-        self.content_input.setPlaceholderText("Mail içeriğinizi buraya yazın...\n\nBoşluklar ve satır sonları korunacaktır.\nKopyala-yapıştır formatı otomatik olarak korunur.")
-        self.content_input.setMinimumHeight(200)
+        self.content_input.setMinimumHeight(300)
         self.content_input.setAcceptRichText(False)  # Sadece düz metin kabul et
         self.content_input.setLineWrapMode(QTextEdit.WidgetWidth)  # Kelime kaydırma
-        self.style_text_input(self.content_input)
+        self.content_input.setPlaceholderText(self.get_html_placeholder())
+        self.style_html_input(self.content_input)
         content_mail_layout.addWidget(self.content_input)
         
-        # Metin düzenleme araçları
+        # Kullanım talimatları
+        instructions_frame = self.create_instructions_frame()
+        content_mail_layout.addWidget(instructions_frame)
+        
+        # Araçlar
         tools_layout = QHBoxLayout()
         
-        # Temizleme butonları
-        clean_spaces_btn = QPushButton("🧹 Fazla Boşlukları Temizle")
-        clean_spaces_btn.clicked.connect(self.clean_extra_spaces)
-        self.style_button(clean_spaces_btn, "#e67e22")
-        tools_layout.addWidget(clean_spaces_btn)
-        
-        # Satır düzenleme
-        fix_lines_btn = QPushButton("📝 Satırları Düzenle")
-        fix_lines_btn.clicked.connect(self.fix_line_breaks)
-        self.style_button(fix_lines_btn, "#9b59b6")
-        tools_layout.addWidget(fix_lines_btn)
-        
-        # Büyük/küçük harf düzenleme
-        case_btn = QPushButton("🔤 Büyük Harfleri Düzelt")
-        case_btn.clicked.connect(self.fix_capitalization)
-        self.style_button(case_btn, "#3498db")
-        tools_layout.addWidget(case_btn)
-        
-        content_mail_layout.addLayout(tools_layout)
-        
-        # İkinci satır araçlar
-        tools_layout2 = QHBoxLayout()
-        
-        # Hepsini düzenle butonu
-        fix_all_btn = QPushButton("✨ Hepsini Otomatik Düzenle")
-        fix_all_btn.clicked.connect(self.fix_all_formatting)
-        self.style_button(fix_all_btn, "#27ae60")
-        tools_layout2.addWidget(fix_all_btn)
-        
-        # Geri al butonu
-        undo_btn = QPushButton("↶ Geri Al")
-        undo_btn.clicked.connect(self.undo_changes)
-        self.style_button(undo_btn, "#95a5a6")
-        tools_layout2.addWidget(undo_btn)
-        
         # Önizleme butonu
-        preview_btn = QPushButton("🔍 İçerik Önizleme")
+        preview_btn = QPushButton("🔍 HTML Önizleme")
         preview_btn.clicked.connect(self.preview_content)
         self.style_button(preview_btn, "#f39c12")
-        tools_layout2.addWidget(preview_btn)
+        tools_layout.addWidget(preview_btn)
         
-        content_mail_layout.addLayout(tools_layout2)
+        # Örnek şablon butonu
+        example_btn = QPushButton("📄 Örnek Şablon Yükle")
+        example_btn.clicked.connect(self.load_example_template)
+        self.style_button(example_btn, "#9b59b6")
+        tools_layout.addWidget(example_btn)
+        
+        # Temizle butonu
+        clear_btn = QPushButton("🗑️ Temizle")
+        clear_btn.clicked.connect(self.clear_content)
+        self.style_button(clear_btn, "#e74c3c")
+        tools_layout.addWidget(clear_btn)
+        
+        content_mail_layout.addLayout(tools_layout)
         
         content_frame.setLayout(content_mail_layout)
         content_layout.addWidget(content_frame)
@@ -548,6 +587,187 @@ class ModernMailSender(QWidget):
         self.cv_label.setText("CV seçilmedi")
         self.cv_label.setStyleSheet("color: #7f8c8d;")
     
+    def get_html_placeholder(self):
+        """HTML placeholder metnini döndürür"""
+        return """HTML şablonunuzu buraya yapıştırın...
+
+<!-- ÖNERİLEN ŞABLON YAPISI -->
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-posta</title>
+</head>
+<body>
+    <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
+        <h1 style="color: #2c3e50;">Başlığınız</h1>
+        <p>İçeriğiniz...</p>
+    </div>
+</body>
+</html>
+
+<!-- VEYA BASIT HTML -->
+<h1 style="color: #2c3e50;">Başlığınız</h1>
+<p>İçeriğiniz...</p>
+<ul>
+    <li>Liste öğesi 1</li>
+    <li>Liste öğesi 2</li>
+</ul>
+
+💡 İPUCU: Yapıştırdığınız HTML aynen gönderilecektir."""
+    
+    def style_html_input(self, widget):
+        """HTML input alanını stillendirir"""
+        widget.setStyleSheet("""
+            QTextEdit {
+                padding: 15px;
+                border: 2px solid #3498db;
+                border-radius: 8px;
+                font-size: 12px;
+                background-color: #f8f9fa;
+                color: #2c3e50;
+                font-family: 'Courier New', 'Monaco', monospace;
+                line-height: 1.4;
+            }
+            QTextEdit:focus {
+                border-color: #e67e22;
+                background-color: white;
+            }
+        """)
+    
+    def create_instructions_frame(self):
+        """Kullanım talimatları frame'i oluşturur"""
+        frame = QFrame()
+        frame.setFrameShape(QFrame.Box)
+        frame.setFrameShadow(QFrame.Raised)
+        frame.setStyleSheet("""
+            QFrame {
+                background-color: #e8f4fd;
+                border: 2px solid #3498db;
+                border-radius: 10px;
+                padding: 15px;
+                margin: 10px 0;
+            }
+        """)
+        
+        layout = QVBoxLayout(frame)
+        
+        # Başlık
+        title = QLabel("📋 HTML Şablon Kullanım Talimatları")
+        title.setStyleSheet("""
+            QLabel {
+                font-size: 14px;
+                font-weight: bold;
+                color: #2c3e50;
+                margin-bottom: 10px;
+            }
+        """)
+        layout.addWidget(title)
+        
+        # Talimatlar
+        instructions = QLabel("""
+1. 🎨 HTML şablonunuzu yukarıdaki alana yapıştırın
+2. 🔍 "HTML Önizleme" butonuyla nasıl gözükeceğini kontrol edin  
+3. 📧 E-posta adreslerinizi ve konuyu girin
+4. 🚀 "E-postaları Gönder" butonuna tıklayın
+
+⚠️ ÖNEMLİ: Yapıştırdığınız HTML kodu hiç değiştirilmeden aynen gönderilir!
+💡 İPUCU: "Örnek Şablon Yükle" butonuyla hazır örnekleri deneyebilirsiniz.
+        """)
+        instructions.setStyleSheet("""
+            QLabel {
+                color: #34495e;
+                font-size: 12px;
+                line-height: 1.6;
+                background-color: transparent;
+            }
+        """)
+        layout.addWidget(instructions)
+        
+        return frame
+    
+    def load_example_template(self):
+        """Örnek HTML şablonu yükler"""
+        example_html = """<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İş Başvurusu</title>
+</head>
+<body style="margin: 0; padding: 20px; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center;">
+            <h1 style="margin: 0; font-size: 28px;">Serhat Yıldız</h1>
+            <p style="margin: 5px 0 0 0; font-size: 18px; opacity: 0.9;">Frontend Developer</p>
+        </div>
+        
+        <!-- Content -->
+        <div style="padding: 30px;">
+            <p style="font-size: 16px; line-height: 1.6; color: #333;">Merhaba,</p>
+            
+            <p style="font-size: 14px; line-height: 1.6; color: #555;">
+                Modern web teknolojileriyle kullanıcı odaklı, ölçeklenebilir ve yüksek performanslı arayüzler geliştiren bir Frontend Developer'ım. Şirketinizdeki uygun pozisyonlar için değerlendirilmekten memnuniyet duyarım.
+            </p>
+            
+            <!-- Skills -->
+            <div style="margin: 25px 0;">
+                <h3 style="color: #4a5568; border-bottom: 2px solid #edf2f7; padding-bottom: 10px; margin-bottom: 15px;">Uzmanlık Alanlarım</h3>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    <span style="background: #3182ce; color: white; padding: 6px 12px; border-radius: 15px; font-size: 12px; display: inline-block;">React & Next.js</span>
+                    <span style="background: #38a169; color: white; padding: 6px 12px; border-radius: 15px; font-size: 12px; display: inline-block;">TypeScript</span>
+                    <span style="background: #d69e2e; color: white; padding: 6px 12px; border-radius: 15px; font-size: 12px; display: inline-block;">Tailwind CSS</span>
+                    <span style="background: #9f7aea; color: white; padding: 6px 12px; border-radius: 15px; font-size: 12px; display: inline-block;">Python</span>
+                </div>
+            </div>
+            
+            <!-- Contact -->
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="margin: 0 0 15px 0; color: #2d3748;">İletişim Bilgileri</h3>
+                <p style="margin: 5px 0; color: #4a5568;">📧 <strong>E-posta:</strong> serhatgulcanyldz04@gmail.com</p>
+                <p style="margin: 5px 0; color: #4a5568;">📱 <strong>Telefon:</strong> 0536 815 16 26</p>
+                <p style="margin: 5px 0; color: #4a5568;">🔗 <strong>Website:</strong> <a href="https://serhatdev.vercel.app" style="color: #3182ce;">serhatdev.vercel.app</a></p>
+                <p style="margin: 5px 0; color: #4a5568;">💼 <strong>GitHub:</strong> <a href="https://github.com/serhat-yildiz" style="color: #3182ce;">github.com/serhat-yildiz</a></p>
+            </div>
+            
+            <p style="font-size: 14px; line-height: 1.6; color: #555; margin-top: 25px;">
+                Ekte CV'mi paylaşıyorum. Değerlendirmeniz için teşekkür ederim.
+            </p>
+            
+            <p style="font-size: 14px; color: #666; margin-top: 20px;">
+                İyi çalışmalar dilerim,<br>
+                <strong>Serhat Yıldız</strong>
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div style="background: #f1f5f9; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
+            <p style="margin: 0; font-size: 12px; color: #718096;">
+                Bu e-posta HTML şablonu ile gönderilmiştir.
+            </p>
+        </div>
+        
+    </div>
+</body>
+</html>"""
+        
+        self.content_input.setPlainText(example_html)
+        QMessageBox.information(self, "Örnek Yüklendi", 
+            "Profesyonel iş başvurusu şablonu yüklendi!\n\n"
+            "• İstediğiniz kısımları düzenleyebilirsiniz\n"
+            "• Önizleme ile kontrol edebilirsiniz\n"
+            "• Aynen bu şekilde gönderilecektir")
+    
+    def clear_content(self):
+        """İçeriği temizler"""
+        self.content_input.clear()
+        QMessageBox.information(self, "Temizlendi", "HTML içeriği temizlendi.")
+    
+
+    
     def preview_content(self):
         """Mail içeriğinin önizlemesini gösterir"""
         content = self.content_input.toPlainText().strip()
@@ -556,9 +776,8 @@ class ModernMailSender(QWidget):
             QMessageBox.warning(self, "Önizleme", "Önce mail içeriği yazın!")
             return
         
-        # HTML formatına çevir
-        thread = EmailSendingThread("", "", [], "", content)
-        html_content = thread.text_to_html(content)
+        # HTML içeriği aynen kullan
+        html_content = content
         
         # Önizleme penceresi oluştur
         preview_dialog = QMessageBox(self)
@@ -568,170 +787,7 @@ class ModernMailSender(QWidget):
         preview_dialog.setInformativeText(content[:500] + "..." if len(content) > 500 else content)
         preview_dialog.exec_()
     
-    def clean_extra_spaces(self):
-        """Fazla boşlukları temizler"""
-        content = self.content_input.toPlainText()
-        
-        if not content.strip():
-            QMessageBox.warning(self, "Uyarı", "Temizlenecek metin yok!")
-            return
-        
-        # Mevcut içeriği geçmişe kaydet
-        self.save_content_to_history()
-        
-        import re
-        
-        # Satır başı ve sonundaki boşlukları temizle
-        lines = content.split('\n')
-        cleaned_lines = [line.strip() for line in lines]
-        
-        # Çoklu boşlukları tek boşluğa çevir (satır başları hariç)
-        for i, line in enumerate(cleaned_lines):
-            cleaned_lines[i] = re.sub(r' +', ' ', line)
-        
-        # Çoklu satır sonlarını en fazla 2 satır sonuna çevir
-        cleaned_content = '\n'.join(cleaned_lines)
-        cleaned_content = re.sub(r'\n{3,}', '\n\n', cleaned_content)
-        
-        self.content_input.setPlainText(cleaned_content)
-        QMessageBox.information(self, "Başarılı", "Fazla boşluklar temizlendi!")
-    
-    def fix_line_breaks(self):
-        """Satır sonlarını düzenler"""
-        content = self.content_input.toPlainText()
-        
-        if not content.strip():
-            QMessageBox.warning(self, "Uyarı", "Düzenlenecek metin yok!")
-            return
-        
-        # Mevcut içeriği geçmişe kaydet
-        self.save_content_to_history()
-        
-        # Paragrafları ayır (çift satır sonu ile ayrılmış)
-        paragraphs = content.split('\n\n')
-        
-        fixed_paragraphs = []
-        for paragraph in paragraphs:
-            # Her paragraf içindeki tek satır sonlarını boşlukla değiştir
-            # Ama liste öğeleri ve özel formatları koru
-            lines = paragraph.split('\n')
-            
-            # Liste öğelerini tespit et (-, •, *, sayılar)
-            import re
-            fixed_lines = []
-            
-            for line in lines:
-                line = line.strip()
-                if line:
-                    # Liste öğesi kontrolü
-                    if re.match(r'^[-•*]\s+|^\d+\.\s+|^[a-zA-Z]\)\s+', line):
-                        # Liste öğesi - yeni satır olarak bırak
-                        if fixed_lines and not fixed_lines[-1].endswith('\n'):
-                            fixed_lines.append('\n')
-                        fixed_lines.append(line)
-                    elif line.startswith(('📧', '📱', '🔗', '✅', '🎯', '💼')):
-                        # Emoji ile başlayan satırlar - yeni satır
-                        if fixed_lines and not fixed_lines[-1].endswith('\n'):
-                            fixed_lines.append('\n')
-                        fixed_lines.append(line)
-                    else:
-                        # Normal metin - önceki satırla birleştir
-                        if fixed_lines and not fixed_lines[-1].endswith('\n'):
-                            fixed_lines[-1] += ' ' + line
-                        else:
-                            fixed_lines.append(line)
-            
-            fixed_paragraphs.append('\n'.join(fixed_lines))
-        
-        # Paragrafları tekrar birleştir
-        fixed_content = '\n\n'.join(fixed_paragraphs)
-        
-        self.content_input.setPlainText(fixed_content)
-        QMessageBox.information(self, "Başarılı", "Satır sonları düzenlendi!")
-    
-    def fix_capitalization(self):
-        """Büyük/küçük harf düzenlemesi yapar"""
-        content = self.content_input.toPlainText()
-        
-        if not content.strip():
-            QMessageBox.warning(self, "Uyarı", "Düzenlenecek metin yok!")
-            return
-        
-        # Mevcut içeriği geçmişe kaydet
-        self.save_content_to_history()
-        
-        lines = content.split('\n')
-        fixed_lines = []
-        
-        for line in lines:
-            if line.strip():
-                # Satır başındaki kelimeyi büyük harfle başlat
-                words = line.strip().split()
-                if words:
-                    # İlk kelimeyi büyük harfle başlat
-                    if not words[0][0].isupper() and words[0][0].isalpha():
-                        words[0] = words[0][0].upper() + words[0][1:]
-                    
-                    # E-posta adreslerini küçük harfe çevir
-                    for i, word in enumerate(words):
-                        if '@' in word and '.' in word:
-                            words[i] = word.lower()
-                    
-                    # URL'leri küçük harfe çevir
-                    for i, word in enumerate(words):
-                        if word.startswith(('http://', 'https://', 'www.')):
-                            words[i] = word.lower()
-                
-                fixed_lines.append(' '.join(words) if words else line)
-            else:
-                fixed_lines.append(line)
-        
-        fixed_content = '\n'.join(fixed_lines)
-        self.content_input.setPlainText(fixed_content)
-        QMessageBox.information(self, "Başarılı", "Büyük/küçük harfler düzenlendi!")
-    
-    def save_content_to_history(self):
-        """Mevcut içeriği geçmişe kaydet"""
-        current_content = self.content_input.toPlainText()
-        if current_content.strip():
-            self.content_history.append(current_content)
-            # Son 10 değişikliği tut
-            if len(self.content_history) > 10:
-                self.content_history.pop(0)
-    
-    def fix_all_formatting(self):
-        """Tüm düzenleme işlemlerini tek seferde yapar"""
-        content = self.content_input.toPlainText()
-        
-        if not content.strip():
-            QMessageBox.warning(self, "Uyarı", "Düzenlenecek metin yok!")
-            return
-        
-        # Mevcut içeriği geçmişe kaydet
-        self.save_content_to_history()
-        
-        # Tüm düzenleme işlemlerini sırayla yap
-        self.clean_extra_spaces()
-        self.fix_line_breaks()
-        self.fix_capitalization()
-        
-        QMessageBox.information(self, "Tamamlandı", 
-            "Tüm düzenleme işlemleri tamamlandı!\n\n"
-            "• Fazla boşluklar temizlendi\n"
-            "• Satır sonları düzenlendi\n"
-            "• Büyük/küçük harfler düzeltildi\n\n"
-            "Geri almak için 'Geri Al' butonunu kullanabilirsiniz.")
-    
-    def undo_changes(self):
-        """Son değişiklikleri geri alır"""
-        if not self.content_history:
-            QMessageBox.information(self, "Bilgi", "Geri alınacak değişiklik yok!")
-            return
-        
-        # Son kaydedilen içeriği geri yükle
-        last_content = self.content_history.pop()
-        self.content_input.setPlainText(last_content)
-        QMessageBox.information(self, "Başarılı", "Son değişiklikler geri alındı!")
+
 
     def send_emails(self):
         """E-posta gönderme işlemini başlatır"""
@@ -772,9 +828,9 @@ class ModernMailSender(QWidget):
         self.progress_bar.setValue(0)
         self.status_label.setText("E-posta gönderimi başlatılıyor...")
         
-        # Thread başlat
+        # Thread başlat (her zaman HTML modu)
         self.email_thread = EmailSendingThread(
-            email, password, recipients, subject, content, self.cv_path)
+            email, password, recipients, subject, content, self.cv_path, True)
         self.email_thread.progress_updated.connect(self.update_progress)
         self.email_thread.finished_signal.connect(self.sending_finished)
         self.email_thread.error_signal.connect(self.sending_error)
