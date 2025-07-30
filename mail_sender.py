@@ -83,7 +83,7 @@ class EmailSendingThread(QThread):
                         with open(self.cv_path, 'rb') as f:
                             cv_part = MIMEApplication(f.read(), _subtype='pdf')
                             cv_part.add_header('Content-Disposition', 'attachment', 
-                                             filename=os.path.basename(self.cv_path))
+                                                   filename=os.path.basename(self.cv_path))
                             msg.attach(cv_part)
                     
                     # Maili gönder
@@ -205,28 +205,33 @@ class ModernMailSender(QWidget):
         
     def init_ui(self):
         """Creates modern UI"""
-        # Ana layout
+        # Main layout
         main_layout = QVBoxLayout(self)
         main_layout.setSpacing(20)
         main_layout.setContentsMargins(30, 30, 30, 30)
         
-        # Title
-        title_label = QLabel("🌐 HTML Email Template Sender")
-        title_label.setStyleSheet("""
+        # Compact Header
+        header_widget = QWidget()
+        header_layout = QVBoxLayout(header_widget)
+        header_layout.setContentsMargins(0, 0, 0, 10)
+        header_layout.setSpacing(5)
+        
+        service_title = QLabel("Professional HTML Email Service")
+        service_title.setStyleSheet("""
             QLabel {
-                font-size: 24px;
+                font-size: 18px;
                 font-weight: bold;
-                color: #27ae60;
-                margin-bottom: 10px;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                padding: 15px;
-                border-radius: 10px;
+                color: #2c3e50;
+                padding: 12px 0;
+                margin: 0;
                 text-align: center;
             }
         """)
-        title_label.setAlignment(Qt.AlignCenter)
-        main_layout.addWidget(title_label)
+        service_title.setAlignment(Qt.AlignCenter)
+        
+        header_layout.addWidget(service_title)
+        
+        main_layout.addWidget(header_widget)
         
         # Create scroll area
         scroll = QScrollArea()
@@ -302,20 +307,40 @@ class ModernMailSender(QWidget):
         subject_layout.addWidget(self.subject_input)
         content_mail_layout.addLayout(subject_layout)
         
-        # Information
-        info_label = QLabel("🌐 HTML Email Template Sender")
-        info_label.setStyleSheet("""
-            QLabel {
-                color: #27ae60;
-                font-size: 16px;
-                font-weight: bold;
-                background-color: #e8f5e8;
-                padding: 10px;
-                border-radius: 5px;
-                border-left: 4px solid #27ae60;
+        # Service Info Panel
+        info_panel = QWidget()
+        info_panel.setStyleSheet("""
+            QWidget {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+                    stop:0 #f8f9fa, stop:1 #e9ecef);
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+                margin: 5px 0;
             }
         """)
-        content_mail_layout.addWidget(info_label)
+        info_layout = QHBoxLayout(info_panel)
+        info_layout.setContentsMargins(15, 12, 15, 12)
+        
+        # Service Icon
+        service_icon = QLabel("🚀")
+        service_icon.setStyleSheet("font-size: 20px; margin-right: 10px;")
+        
+        # Service Message
+        service_msg = QLabel("Ready to send professional HTML emails to multiple recipients")
+        service_msg.setStyleSheet("""
+            QLabel {
+                font-size: 14px;
+                color: #495057;
+                font-weight: 500;
+                background: transparent;
+            }
+        """)
+        
+        info_layout.addWidget(service_icon)
+        info_layout.addWidget(service_msg)
+        info_layout.addStretch()
+        
+        content_mail_layout.addWidget(info_panel)
         
         # HTML Template area
         content_input_label = QLabel("Your HTML Email Template:")
@@ -334,24 +359,7 @@ class ModernMailSender(QWidget):
         instructions_frame = self.create_instructions_frame()
         content_mail_layout.addWidget(instructions_frame)
         
-        # Tools
-        tools_layout = QHBoxLayout()
-        
-        # Preview button
-        preview_btn = QPushButton("🔍 HTML Preview")
-        preview_btn.clicked.connect(self.preview_content)
-        self.style_button(preview_btn, "#f39c12")
-        tools_layout.addWidget(preview_btn)
-        
 
-        
-        # Clear button
-        clear_btn = QPushButton("🗑️ Clear")
-        clear_btn.clicked.connect(self.clear_content)
-        self.style_button(clear_btn, "#e74c3c")
-        tools_layout.addWidget(clear_btn)
-        
-        content_mail_layout.addLayout(tools_layout)
         
         content_frame.setLayout(content_mail_layout)
         content_layout.addWidget(content_frame)
@@ -404,7 +412,7 @@ class ModernMailSender(QWidget):
         send_layout.addWidget(self.status_label)
         
         # Send button
-        self.send_btn = QPushButton("📧 Send Emails")
+        self.send_btn = QPushButton("🚀 Deploy Email Campaign")
         self.send_btn.clicked.connect(self.send_emails)
         self.send_btn.setMinimumHeight(50)
         self.send_btn.setStyleSheet("""
@@ -585,33 +593,41 @@ class ModernMailSender(QWidget):
     
     def get_html_placeholder(self):
         """Returns HTML placeholder text"""
-        return """Paste your HTML template here...
+        return """📧 MailCraft Pro - HTML Email Editor
 
-<!-- RECOMMENDED TEMPLATE STRUCTURE -->
+Paste your professional HTML email template here...
+
+<!-- ENTERPRISE EMAIL TEMPLATE STRUCTURE -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Email</title>
+    <title>Professional Email</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+    </style>
 </head>
 <body>
-    <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
-        <h1 style="color: #2c3e50;">Your Title</h1>
-        <p>Your content...</p>
+    <div class="container">
+        <h1 style="color: #2c3e50;">Your Professional Message</h1>
+        <p style="line-height: 1.6;">Your content goes here...</p>
+        
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <p style="margin: 0; color: #6c757d;">Important information or call-to-action</p>
+        </div>
+        
+        <p style="color: #6c757d; font-size: 12px;">
+            Best regards,<br>Your Company
+        </p>
     </div>
 </body>
 </html>
 
-<!-- OR SIMPLE HTML -->
-<h1 style="color: #2c3e50;">Your Title</h1>
-<p>Your content...</p>
-<ul>
-    <li>List item 1</li>
-    <li>List item 2</li>
-</ul>
-
-💡 TIP: Your pasted HTML will be sent exactly as is."""
+🔒 SECURE DELIVERY: Templates are transmitted via encrypted SMTP
+⚡ INSTANT SENDING: Bulk email delivery to multiple recipients
+📊 ENTERPRISE READY: Professional email marketing solution"""
     
     def style_html_input(self, widget):
         """HTML input alanını stillendirir"""
@@ -650,7 +666,7 @@ class ModernMailSender(QWidget):
         layout = QVBoxLayout(frame)
         
         # Title
-        title = QLabel("📋 HTML Template Usage Instructions")
+        title = QLabel("📋 MailCraft Pro Service Guide")
         title.setStyleSheet("""
             QLabel {
                 font-size: 14px;
@@ -663,13 +679,14 @@ class ModernMailSender(QWidget):
         
         # Instructions
         instructions = QLabel("""
-1. 🎨 Paste your HTML template in the area above
-2. 🔍 Check how it will look with "HTML Preview" button  
-3. 📧 Enter your email addresses and subject
-4. 🚀 Click "Send Emails" button
+🔧 How to use MailCraft Pro:
 
-⚠️ IMPORTANT: Your pasted HTML code will be sent exactly as is, without any changes!
-💡 TIP: Try ready examples with "Load Example Template" button.
+1. 📝 Paste your HTML template in the editor above
+2. 📧 Configure recipients and email subject  
+3. 🚀 Send to multiple recipients instantly
+
+⚠️ ENTERPRISE GRADE: Your HTML is transmitted exactly as provided
+🔒 SECURE: All communications use encrypted SMTP protocols
         """)
         instructions.setStyleSheet("""
             QLabel {
@@ -683,105 +700,13 @@ class ModernMailSender(QWidget):
         
         return frame
     
-    def load_example_template(self):
-        """Loads example HTML template"""
-        example_html = """<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Job Application</title>
-</head>
-<body style="margin: 0; padding: 20px; font-family: Arial, sans-serif; background-color: #f4f4f4;">
-    <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-        
-        <!-- Header -->
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center;">
-            <h1 style="margin: 0; font-size: 28px;">John Smith</h1>
-            <p style="margin: 5px 0 0 0; font-size: 18px; opacity: 0.9;">Frontend Developer</p>
-        </div>
-        
-        <!-- Content -->
-        <div style="padding: 30px;">
-            <p style="font-size: 16px; line-height: 1.6; color: #333;">Hello,</p>
-            
-            <p style="font-size: 14px; line-height: 1.6; color: #555;">
-                I am a Frontend Developer who creates user-centered, scalable, and high-performance interfaces with modern web technologies. I would be delighted to be considered for suitable positions at your company.
-            </p>
-            
-            <!-- Skills -->
-            <div style="margin: 25px 0;">
-                <h3 style="color: #4a5568; border-bottom: 2px solid #edf2f7; padding-bottom: 10px; margin-bottom: 15px;">My Areas of Expertise</h3>
-                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                    <span style="background: #3182ce; color: white; padding: 6px 12px; border-radius: 15px; font-size: 12px; display: inline-block;">React & Next.js</span>
-                    <span style="background: #38a169; color: white; padding: 6px 12px; border-radius: 15px; font-size: 12px; display: inline-block;">TypeScript</span>
-                    <span style="background: #d69e2e; color: white; padding: 6px 12px; border-radius: 15px; font-size: 12px; display: inline-block;">Tailwind CSS</span>
-                    <span style="background: #9f7aea; color: white; padding: 6px 12px; border-radius: 15px; font-size: 12px; display: inline-block;">Python</span>
-                </div>
-            </div>
-            
-            <!-- Contact -->
-            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h3 style="margin: 0 0 15px 0; color: #2d3748;">Contact Information</h3>
-                <p style="margin: 5px 0; color: #4a5568;">📧 <strong>Email:</strong> john.smith@gmail.com</p>
-                <p style="margin: 5px 0; color: #4a5568;">📱 <strong>Phone:</strong> +1 (555) 123-4567</p>
-                <p style="margin: 5px 0; color: #4a5568;">🔗 <strong>Website:</strong> <a href="https://johnsmith.dev" style="color: #3182ce;">johnsmith.dev</a></p>
-                <p style="margin: 5px 0; color: #4a5568;">💼 <strong>GitHub:</strong> <a href="https://github.com/john-smith" style="color: #3182ce;">github.com/john-smith</a></p>
-            </div>
-            
-            <p style="font-size: 14px; line-height: 1.6; color: #555; margin-top: 25px;">
-                I am sharing my CV as an attachment. Thank you for your consideration.
-            </p>
-            
-            <p style="font-size: 14px; color: #666; margin-top: 20px;">
-                Best regards,<br>
-                <strong>John Smith</strong>
-            </p>
-        </div>
-        
-        <!-- Footer -->
-        <div style="background: #f1f5f9; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
-            <p style="margin: 0; font-size: 12px; color: #718096;">
-                This email was sent with an HTML template.
-            </p>
-        </div>
-        
-    </div>
-</body>
-</html>"""
-        
-        self.content_input.setPlainText(example_html)
-        QMessageBox.information(self, "Example Loaded", 
-            "Professional job application template loaded!\n\n"
-            "• You can edit any parts you want\n"
-            "• You can check with preview\n"
-            "• It will be sent exactly like this")
-    
-    def clear_content(self):
-        """Clears content"""
-        self.content_input.clear()
-        QMessageBox.information(self, "Cleared", "HTML content cleared.")
+
     
 
     
-    def preview_content(self):
-        """Shows email content preview"""
-        content = self.content_input.toPlainText().strip()
-        
-        if not content:
-            QMessageBox.warning(self, "Preview", "Please write email content first!")
-            return
-        
-        # Use HTML content as is
-        html_content = content
-        
-        # Create preview window
-        preview_dialog = QMessageBox(self)
-        preview_dialog.setWindowTitle("Email Content Preview")
-        preview_dialog.setText("Your email content will look like this:")
-        preview_dialog.setDetailedText(f"HTML Code:\n{html_content}")
-        preview_dialog.setInformativeText(content[:500] + "..." if len(content) > 500 else content)
-        preview_dialog.exec_()
+
+    
+
     
 
 
@@ -813,8 +738,8 @@ class ModernMailSender(QWidget):
             f"Are you sure you want to send emails to {len(recipients)} people?",
                 QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         
-            if reply == QMessageBox.No:
-                return
+        if reply == QMessageBox.No:
+            return
         
         # Update UI
         self.send_btn.setEnabled(False)
@@ -822,7 +747,7 @@ class ModernMailSender(QWidget):
         self.progress_bar.setVisible(True)
         self.progress_bar.setMaximum(len(recipients))
         self.progress_bar.setValue(0)
-        self.status_label.setText("Starting email sending...")
+        self.status_label.setText("Initializing email campaign...")
         
         # Start thread (always HTML mode)
         self.email_thread = EmailSendingThread(
@@ -850,8 +775,8 @@ class ModernMailSender(QWidget):
         if failed == 0:
             QMessageBox.information(self, "Success", 
                 f"All emails sent successfully! ({successful} emails)")
-            else:
-                QMessageBox.warning(self, "Partial Success", 
+        else:
+            QMessageBox.warning(self, "Partial Success", 
                 f"Sending result:\n"
                 f"✅ Successful: {successful} emails\n"
                 f"❌ Failed: {failed} emails\n\n"
