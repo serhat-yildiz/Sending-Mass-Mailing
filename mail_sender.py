@@ -210,8 +210,8 @@ class ModernMailSender(QWidget):
         main_layout.setSpacing(20)
         main_layout.setContentsMargins(30, 30, 30, 30)
         
-        # Başlık
-        title_label = QLabel("🌐 HTML E-posta Şablonu Gönderici")
+        # Title
+        title_label = QLabel("🌐 HTML Email Template Sender")
         title_label.setStyleSheet("""
             QLabel {
                 font-size: 24px;
@@ -228,41 +228,41 @@ class ModernMailSender(QWidget):
         title_label.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(title_label)
         
-        # Scroll area oluştur
+        # Create scroll area
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.NoFrame)
         
-        # Ana içerik widget'ı
+        # Main content widget
         content_widget = QWidget()
         content_layout = QVBoxLayout(content_widget)
         content_layout.setSpacing(25)
         
-        # Gmail ayarları bölümü
-        gmail_frame = self.create_section_frame("Gmail Ayarları")
+        # Gmail settings section
+        gmail_frame = self.create_section_frame("Gmail Settings")
         gmail_layout = QGridLayout()
         
-        # E-posta adresi
-        email_label = QLabel("Gmail Adresiniz:")
+        # Email address
+        email_label = QLabel("Your Gmail Address:")
         email_label.setStyleSheet("color: #2c3e50; background-color: transparent;")
         gmail_layout.addWidget(email_label, 0, 0)
         self.email_input = QLineEdit()
-        self.email_input.setPlaceholderText("ornek@gmail.com")
+        self.email_input.setPlaceholderText("example@gmail.com")
         self.style_input(self.email_input)
         gmail_layout.addWidget(self.email_input, 0, 1)
         
-        # Uygulama şifresi
-        password_label = QLabel("Uygulama Şifreniz:")
+        # App password
+        password_label = QLabel("Your App Password:")
         password_label.setStyleSheet("color: #2c3e50; background-color: transparent;")
         gmail_layout.addWidget(password_label, 1, 0)
         self.password_input = QLineEdit()
         self.password_input.setEchoMode(QLineEdit.Password)
-        self.password_input.setPlaceholderText("16 haneli uygulama şifreniz")
+        self.password_input.setPlaceholderText("Your 16-digit app password")
         self.style_input(self.password_input)
         gmail_layout.addWidget(self.password_input, 1, 1)
         
-        # Yardım butonu
-        help_btn = QPushButton("Uygulama Şifresi Nasıl Alınır?")
+        # Help button
+        help_btn = QPushButton("How to Get App Password?")
         help_btn.clicked.connect(self.show_help)
         self.style_button(help_btn, "#3498db")
         gmail_layout.addWidget(help_btn, 2, 0, 1, 2)
@@ -270,16 +270,16 @@ class ModernMailSender(QWidget):
         gmail_frame.setLayout(gmail_layout)
         content_layout.addWidget(gmail_frame)
         
-        # Alıcı listesi bölümü
-        recipients_frame = self.create_section_frame("Alıcı Listesi")
+        # Recipients list section
+        recipients_frame = self.create_section_frame("Recipients List")
         recipients_layout = QVBoxLayout()
         
-        recipients_label = QLabel("E-posta adresleri (her satıra bir adres):")
+        recipients_label = QLabel("Email addresses (one per line):")
         recipients_label.setStyleSheet("color: #2c3e50; background-color: transparent;")
         recipients_layout.addWidget(recipients_label)
         
         self.recipients_input = QTextEdit()
-        self.recipients_input.setPlaceholderText("ornek1@gmail.com\nornek2@gmail.com\nornek3@gmail.com")
+        self.recipients_input.setPlaceholderText("example1@gmail.com\nexample2@gmail.com\nexample3@gmail.com")
         self.recipients_input.setMaximumHeight(120)
         self.style_text_input(self.recipients_input)
         recipients_layout.addWidget(self.recipients_input)
@@ -287,23 +287,23 @@ class ModernMailSender(QWidget):
         recipients_frame.setLayout(recipients_layout)
         content_layout.addWidget(recipients_frame)
         
-        # Mail içeriği bölümü
-        content_frame = self.create_section_frame("Mail İçeriği")
+        # Email content section
+        content_frame = self.create_section_frame("Email Content")
         content_mail_layout = QVBoxLayout()
         
-        # Konu
+        # Subject
         subject_layout = QHBoxLayout()
-        subject_label = QLabel("Konu:")
+        subject_label = QLabel("Subject:")
         subject_label.setStyleSheet("color: #2c3e50; background-color: transparent;")
         subject_layout.addWidget(subject_label)
         self.subject_input = QLineEdit()
-        self.subject_input.setPlaceholderText("Mail konunuzu buraya yazın")
+        self.subject_input.setPlaceholderText("Enter your email subject here")
         self.style_input(self.subject_input)
         subject_layout.addWidget(self.subject_input)
         content_mail_layout.addLayout(subject_layout)
         
-        # Bilgilendirme
-        info_label = QLabel("🌐 HTML E-posta Şablonu Gönderici")
+        # Information
+        info_label = QLabel("🌐 HTML Email Template Sender")
         info_label.setStyleSheet("""
             QLabel {
                 color: #27ae60;
@@ -317,8 +317,8 @@ class ModernMailSender(QWidget):
         """)
         content_mail_layout.addWidget(info_label)
         
-        # HTML Şablon alanı
-        content_input_label = QLabel("HTML E-posta Şablonunuz:")
+        # HTML Template area
+        content_input_label = QLabel("Your HTML Email Template:")
         content_input_label.setStyleSheet("color: #2c3e50; background-color: transparent; font-weight: bold;")
         content_mail_layout.addWidget(content_input_label)
         
@@ -815,10 +815,10 @@ class ModernMailSender(QWidget):
         # Onay iste
         reply = QMessageBox.question(self, "Onay", 
             f"{len(recipients)} kişiye e-posta göndermek istediğinizden emin misiniz?",
-            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         
-        if reply == QMessageBox.No:
-            return
+            if reply == QMessageBox.No:
+                return
         
         # UI'yi güncelle
         self.send_btn.setEnabled(False)
@@ -854,8 +854,8 @@ class ModernMailSender(QWidget):
         if failed == 0:
             QMessageBox.information(self, "Başarılı", 
                 f"Tüm e-postalar başarıyla gönderildi! ({successful} adet)")
-        else:
-            QMessageBox.warning(self, "Kısmi Başarı", 
+            else:
+                QMessageBox.warning(self, "Kısmi Başarı", 
                 f"Gönderim sonucu:\n"
                 f"✅ Başarılı: {successful} adet\n"
                 f"❌ Başarısız: {failed} adet\n\n"
@@ -871,8 +871,8 @@ class ModernMailSender(QWidget):
         self.send_btn.setEnabled(True)
         self.cancel_btn.setVisible(False)
         self.progress_bar.setVisible(False)
-        self.progress_bar.setValue(0)
-        self.status_label.setText("")
+            self.progress_bar.setValue(0)
+            self.status_label.setText("")
     
     def load_settings(self):
         """Ayarları yükler"""

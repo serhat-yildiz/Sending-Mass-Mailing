@@ -7,25 +7,25 @@ from mail_sender import ModernMailSender
 class ModernMailApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Toplu E-posta Gönderici")
+        self.setWindowTitle("Mass Email HTML Template Sender")
         self.setGeometry(100, 100, 900, 700)
         self.setMinimumSize(800, 600)
         
-        # Modern tema uygula
+        # Apply modern theme
         self.apply_modern_theme()
         
-        # Ana widget ve layout
+        # Main widget and layout
         main_widget = QWidget()
         self.setCentralWidget(main_widget)
         layout = QVBoxLayout(main_widget)
         layout.setContentsMargins(0, 0, 0, 0)
         
-        # Mail gönderici widget'ı ekle
+        # Add mail sender widget
         self.sender = ModernMailSender()
         layout.addWidget(self.sender)
     
     def apply_modern_theme(self):
-        """Modern tema uygular"""
+        """Apply modern theme"""
         self.setStyleSheet("""
             QMainWindow {
                 background-color: #f8f9fa;
