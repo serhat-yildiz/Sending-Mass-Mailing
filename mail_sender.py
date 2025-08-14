@@ -792,8 +792,8 @@ Paste your professional HTML email template here...
         self.send_btn.setEnabled(True)
         self.cancel_btn.setVisible(False)
         self.progress_bar.setVisible(False)
-            self.progress_bar.setValue(0)
-            self.status_label.setText("")
+        self.progress_bar.setValue(0)
+        self.status_label.setText("")
     
     def load_settings(self):
         """Ayarları yükler"""
