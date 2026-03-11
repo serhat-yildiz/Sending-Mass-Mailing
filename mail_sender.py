@@ -389,11 +389,7 @@ class ModernMailSender(QWidget):
         send_layout.addWidget(self.status_label)
         
         # Send button
-<<<<<<< HEAD
         self.send_btn = QPushButton("Send Emails")
-=======
-        self.send_btn = QPushButton("🚀 Deploy Email Campaign")
->>>>>>> f929a6262041429824378b98bbdca68aecff8ca0
         self.send_btn.clicked.connect(self.send_emails)
         self.send_btn.setMinimumHeight(50)
         self.send_btn.setStyleSheet("""
