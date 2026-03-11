@@ -389,7 +389,11 @@ class ModernMailSender(QWidget):
         send_layout.addWidget(self.status_label)
         
         # Send button
+<<<<<<< HEAD
         self.send_btn = QPushButton("Send Emails")
+=======
+        self.send_btn = QPushButton("🚀 Deploy Email Campaign")
+>>>>>>> f929a6262041429824378b98bbdca68aecff8ca0
         self.send_btn.clicked.connect(self.send_emails)
         self.send_btn.setMinimumHeight(50)
         self.send_btn.setStyleSheet("""
@@ -590,24 +594,39 @@ class ModernMailSender(QWidget):
         <p>Your content goes here...</p>
     </div>
 </body>
+</body>
 </html>"""
     
     def style_html_input(self, widget):
         """HTML input alanını stillendirir"""
         widget.setStyleSheet("""
             QTextEdit {
+<<<<<<< HEAD
                 padding: 12px;
                 border: 1px solid #d1d5db;
                 border-radius: 6px;
                 font-size: 12px;
                 background-color: #f9fafb;
                 color: #111827;
+=======
+                padding: 15px;
+                border: 2px solid #3498db;
+                border-radius: 8px;
+                font-size: 12px;
+                background-color: #f8f9fa;
+                color: #2c3e50;
+>>>>>>> f929a6262041429824378b98bbdca68aecff8ca0
                 font-family: 'Courier New', 'Monaco', monospace;
                 line-height: 1.4;
             }
             QTextEdit:focus {
+<<<<<<< HEAD
                 border-color: #3b82f6;
                 background-color: #ffffff;
+=======
+                border-color: #e67e22;
+                background-color: white;
+>>>>>>> f929a6262041429824378b98bbdca68aecff8ca0
             }
         """)
     
@@ -732,20 +751,14 @@ class ModernMailSender(QWidget):
         self.reset_ui()
         
         if failed == 0:
-            QMessageBox.information(
-                self,
-                "Success",
-                f"All emails sent successfully. ({successful} emails)",
-            )
+            QMessageBox.information(self, "Success", 
+                f"All emails sent successfully! ({successful} emails)")
         else:
-            QMessageBox.warning(
-                self,
-                "Partial Success",
-                "Sending result:\n"
-                f"Successful: {successful} emails\n"
-                f"Failed: {failed} emails\n\n"
-                f"Error details:\n{error_msg[:500]}{'...' if len(error_msg) > 500 else ''}",
-            )
+            QMessageBox.warning(self, "Partial Success", 
+                f"Sending result:\n"
+                f"✅ Successful: {successful} emails\n"
+                f"❌ Failed: {failed} emails\n\n"
+                f"Error details:\n{error_msg[:500]}{'...' if len(error_msg) > 500 else ''}")
     
     def sending_error(self, error_msg):
         """Called when sending error occurs"""
